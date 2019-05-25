@@ -8,6 +8,6 @@ do
     fi
 done > module_of_pathway.list
 
-curl -o module_ec.list http://rest.kegg.jp/link/module/reaction
+curl -o module_ec.list http://rest.kegg.jp/link/module/ec
 
 grep -f module_of_pathway.list module_ec.list >  module_ec.list.pathway
