@@ -1,0 +1,163 @@
+########
+# DATA #
+########
+
+# RT='~/laboratory/orphan_enzyme/gut_metagenome/workspace'
+RT='.'
+GW=9
+PL=24
+
+tree ${RT}/data
+
+# Before Process
+#
+# data
+# ├── kegg
+# │   ├── gene_enzyme
+# │   │   ├── aaa.list
+# │   │   ├── ...
+# │   │   └── ztr.list
+# │   ├── gff
+# │   └── kff
+# │       ├── aaa.kff
+# │       ├── ...
+# │       └── ztr.kff
+# │
+# ├── genome_query
+# │
+# ├── pathway_query
+# │
+# └── matched
+
+# After Process
+#
+# data
+# ├── kegg
+# │   ├── gene_enzyme
+# │   │   ├── aaa.list
+# │   │   ├── ...
+# │   │   └── ztr.list
+# │   ├── gff
+# │   │   ├── aaa.gff
+# │   │   ├── ...
+# │   │   └── ztr.gff
+# │   └── kff
+# │       ├── aaa.kff
+# │       ├── ...
+# │       └── ztr.kff
+# │
+# ├── genome_query
+# │   ├── aaa
+# │   │   ├── aaa_enzyme.3.list
+# │   │   ├── ...
+# │   │   └── aaa_enzyme.9.list
+# │   ├── ...
+# │   └── ztr
+# │
+# ├── pathway_query
+# │   ├── 1.list
+# │   ├── ...
+# │   └── 24.list
+# │
+# └── matched
+
+
+
+##############
+# VALIDATION #
+##############
+
+# 1. Preparation of Genome Query
+# 1-1. Convert Format from KFF to GFF
+
+ORGS=(`\ls ${RT}/data/kegg/kff | cut -d '.' -f 1 | xargs`)
+
+for i in ${ORGS[@]}
+do
+	qsub \
+		-V \
+		-cwd \
+		-v "DIR=${RT},IN=${RT}/data/kegg/kff/${i}.kff,OUT=${RT}/data/kegg/gff/${i}.gff" \
+		${RT}/script/shell/qsub_kff2gff.sh
+done
+
+# 1-2. Format Genome Query from GFF and Gene - Enzyme list
+
+ORGS=(`\ls ${RT}/data/kegg/gff | cut -d '.' -f 1 | xargs`)
+
+for i in ${ORGS[@]}
+do
+	mkdir $RT/data/genome_query/${i}
+	for j in `seq 2 1 ${GW}`
+	do		
+		qsub \
+			-V \
+			-cwd \
+			-v "DIR=${RT},GFF=${RT}/data/kegg/gff/${i}.gff,GE=${RT}/data/kegg/gene_enzyme/${i}.list,OUT=${RT}/data/genome_query/${i}/${j}.list,GW=${j}" \
+			${RT}/script/shell/qsub_format_genome_query.sh
+	done
+done
+
+
+# 2. Preparation of Pathway Query
+
+for i in `seq 1 1 ${PL}`
+do		
+	qsub \
+		-V \
+		-cwd \
+		-v "DIR=${RT},OUT=${RT}/data/pathway_query/${i}.list,LENGTH=${i}" \
+		${RT}/script/shell/qsub_format_pathway_query.sh
+done
+
+
+# 3. Matching Genome Query with Pathway Query
+
+ORGS=(`\ls ${RT}/data/genome_query | xargs`)
+
+for i in ${ORGS[@]}
+do
+	for j in `seq 2 1 ${GW}`
+	do
+		for k in `seq ${j} 1 ${PL}`
+		do
+			qsub \
+				-V \
+				-v "DIR=${RT},GQ=${RT}/data/genome_query/${i}/${j}.list,PQ=${RT}/data/pathway_query/${k}.list,OUT=${RT}/data/matched/organisms/${i}.${j}.${k}.res,DIGIT=4,TD=1,TN=${j}" \
+				-cwd \
+				${RT}/script/shell/qsub_match.sh
+		done
+	done
+done
+
+
+
+
+for i in `seq 2 1 ${GW}`
+do
+	for j in `seq ${i} 1 ${PL}`
+	do
+		cat ${RT}/data/matched/organisms/*.${i}.${j}.res \
+		    > data/matched/summary/${i}.${j}.res
+	done
+done
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
