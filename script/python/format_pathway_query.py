@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: ynakamura
 
+import itertools
 import sys
 
 from argparse import ArgumentParser
@@ -54,8 +55,10 @@ def main(module_enzyme, output, length):
         if length is None:
             result.append(['/'.join(dictionary[i]), i])
         else:
-            if len(dictionary[i]) == length:
-                result.append(['/'.join(dictionary[i]), i])
+            if len(dictionary[i]) >= length:
+                for c in itertools.combinations(dictionary[i], length):
+                    result.append(['/'.join(c), i])
+
     out.write(''.join([
         '{0}\t{1}\n'.format(i[0], i[1])
         for i in result]))
