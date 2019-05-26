@@ -1,13 +1,23 @@
-for i in `seq 874`
+#!/bin/bash
+
+DIR=$(dirname $0)
+
+wget "http://rest.kegg.jp/list/module" \
+	-O "${DIR}/../../data/kegg/module.list"
+
+MODULES=`cut -f 1 "${DIR}/../../data/kegg/module.list" | cut -d ':' -f 2 | xargs`
+for i in ${MODULES[@]}
 do
-    N=$(( i + 100000))
-    ID=M${N:1}
-    RESULT=$(curl http://togows.org/entry/kegg-module/${ID}/classes)
-    if [ ${RESULT:0:7} = "Pathway" ]; then
-     echo $ID
+	RESULT=`wget "http://togows.org/entry/kegg-module/${i}/classes" -O "/dev/stdout"`
+	if [ ${RESULT:0:7} = "Pathway" ]; then
+     echo ${i}
     fi
-done > module_of_pathway.list
+done > "${DIR}/../../data/kegg/module_of_pathway.list"
 
-curl -o module_ec.list http://rest.kegg.jp/link/module/ec
+wget "http://rest.kegg.jp/link/module/ec" \
+	-O "${DIR}/../../data/kegg/module_ec.list"
 
-grep -f module_of_pathway.list module_ec.list >  module_ec.list.pathway
+grep \
+	-f "${DIR}/../../data/kegg/module_of_pathway.list"\
+	"${DIR}/../../data/kegg/module_ec.list" \
+	>  "${DIR}/../../data/kegg/module_ec.list.pathway"
