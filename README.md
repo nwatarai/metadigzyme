@@ -20,7 +20,7 @@ metadigzyme では、以下の仮説に基づいて、遺伝子を推定する�
 
 ## アルゴリズム
 
-![]()
+![docs/algorithm.pdf](docs/algorithm.pdf)
 
 1. 代謝反応モジュールの各反応のEC番号を取得
 2. 細菌ゲノム中の各酵素遺伝子のEC番号を取得
