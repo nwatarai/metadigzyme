@@ -37,7 +37,7 @@ RUN pip install --upgrade pip; \
 ###############################
 
 COPY . /opt/metadigzyme
-RUN bash /opt/metadigzyme/script/shell/make_module_of_pathway_list.sh
+RUN bash /opt/metadigzyme/script/shell/download_references.sh
 
 
 ########################
