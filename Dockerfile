@@ -37,7 +37,7 @@ RUN pip install --upgrade pip; \
 ###############################
 
 COPY . /opt/metadigzyme
-RUN bash /opt/metadigzyme/script/shell/download_references.sh
+RUN bash /opt/metadigzyme/script/shell/setup_validation.sh
 
 
 ########################
