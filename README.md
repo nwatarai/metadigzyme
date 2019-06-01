@@ -6,7 +6,12 @@ metadigzyme working directory
 ## Quick Start
 
 ```bash
-docker run metagigzyme
+docker run metadigzyme \
+	python /opt/metadigzyme/script/python/search_cluster.py \
+		-g /opt/metadigzyme/test_data/input/eco.gff \
+		-me /opt/metadigzyme/validation/input/module_query/M00001 \
+		-ge /opt/metadigzyme/test_data/input/eco.list \
+		-o "/dev/stdout"
 ```
 
 ## 概要
