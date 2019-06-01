@@ -6,7 +6,10 @@ INPUT_DIR="${VALIDATION_DIR}/input"
 OUTPUT_DIR="${VALIDATION_DIR}/output"
 ANSWER_DIR="${VALIDATION_DIR}/answer"
 
-MODULE_ENZYME="${INPUT_DIR}/module_enzyme"
+MODULE_ENZYME_DIR="${INPUT_DIR}/module_enzyme"
+GENE_ENZYME_DIR="${INPUT_DIR}/gene_enzyme"
+KFF_DIR="${INPUT_DIR}/kff"
+GFF_DIR="${INPUT_DIR}/gff"
 
 
 ##############################################
@@ -42,14 +45,14 @@ if [ ! -e "${INPUT_DIR}/module_ec.list.pathway" ]; then
 		-f "${INPUT_DIR}/module_of_pathway.list"\
 		"${INPUT_DIR}/module_ec.list" \
 		>  "${INPUT_DIR}/module_ec.list.pathway"
-	rm -r "${MODULE_ENZYME}"
+	rm -r "${MODULE_ENZYME_DIR}"
 fi
 
-if [ ! -e "${MODULE_ENZYME}" ]; then
-	mkdir -p "${MODULE_ENZYME}"
+if [ ! -e "${MODULE_ENZYME_DIR}" ]; then
+	mkdir -p "${MODULE_ENZYME_DIR}"
 	python "${DIR}/script/python/make_module_ec_lists.py" \
 		"${INPUT_DIR}/module_ec.list.pathway" \
-		-o "${MODULE_ENZYME}"
+		-o "${MODULE_ENZYME_DIR}"
 fi
 
 
@@ -57,21 +60,39 @@ fi
 # UNARCHIVE KFF AND GENE ENZYME FOR INPUT DATA #
 ################################################
 
-if [ ! -e "${INPUT_DIR}/kff/zpr.kff" ]; then
-	LIST=(`ls ${INPUT_DIR}/kff`)
+if [ ! -e "${KFF_DIR}/zpr.kff" ]; then
+	LIST=(`ls ${KFF_DIR}`)
 	for i in ${LIST[@]}
 	do
 		NAME=`echo ${i} | cut -d '.' -f 1,2`
-		gunzip -c "${INPUT_DIR}/kff/${i}" > "${INPUT_DIR}/kff/${NAME}"
+		gunzip -c "${KFF_DIR}/${i}" > "${KFF_DIR}/${NAME}"
+	done
+	rm -r ${GFF_DIR}
+fi
+
+if [ ! -e "${GENE_ENZYME_DIR}/zpr.list" ]; then
+	LIST=(`ls ${GENE_ENZYME_DIR}`)
+	for i in ${LIST[@]}
+	do
+		NAME=`echo ${i} | cut -d '.' -f 1,2`
+		gunzip -c "${GENE_ENZYME_DIR}/${i}" > "${GENE_ENZYME_DIR}/${NAME}"
 	done
 fi
 
-if [ ! -e "${INPUT_DIR}/gene_enzyme/zpr.list" ]; then
-	LIST=(`ls ${INPUT_DIR}/gene_enzyme`)
+
+######################
+# CONVERT KFF TO GFF #
+######################
+
+if [ ! -e "${GFF_DIR}" ]; then
+	mkdir -p "${GFF_DIR}"
+	LIST=(`ls ${KFF_DIR} | grep -v '.gz'`)
 	for i in ${LIST[@]}
 	do
-		NAME=`echo ${i} | cut -d '.' -f 1,2`
-		gunzip -c "${INPUT_DIR}/gene_enzyme/${i}" > "${INPUT_DIR}/gene_enzyme/${NAME}"
+		NAME=`echo ${i} | cut -d '.' -f 1`
+		python script/python/kff2gff.py \
+		    "${KFF_DIR}/${i}" \
+		    -o "${GFF_DIR}/${NAME}.gff"
 	done
 fi
 
