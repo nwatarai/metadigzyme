@@ -19,20 +19,8 @@ GFF_DIR="${INPUT_DIR}/gff"
 if [ ! -e "${INPUT_DIR}/module.list" ]; then
 	wget "http://rest.kegg.jp/list/module" \
 		-O "${INPUT_DIR}/module.list"
-	rm "${INPUT_DIR}/module_of_pathway.list"
 fi
 
-if [ ! -e "${INPUT_DIR}/module_of_pathway.list" ]; then
-	MODULES=(`cut -f 1 "${INPUT_DIR}/module.list" | cut -d ':' -f 2 | xargs`)
-	for i in ${MODULES[@]}
-	do
-		RESULT=`wget "http://togows.org/entry/kegg-module/${i}/classes" -O "/dev/stdout"`
-		if [ ${RESULT:0:7} = "Pathway" ]; then
-	     echo ${i}
-	    fi
-	done > "${INPUT_DIR}/module_of_pathway.list"
-	rm "${INPUT_DIR}/module_ec.list.pathway"
-fi
 
 if [ ! -e "${INPUT_DIR}/module_ec.list" ]; then
 	wget "http://rest.kegg.jp/link/module/ec" \
