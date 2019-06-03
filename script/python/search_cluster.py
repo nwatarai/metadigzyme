@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 # Author: nwatarai
 
-import sys
 import numpy as np
 import pandas as pd
 import copy
 from argparse import ArgumentParser
+
 
 def parser_setting():
     parser = ArgumentParser(
@@ -47,16 +47,21 @@ def parser_setting():
     args = parser.parse_args()
     return vars(args)
 
+
 def parse_gff(gff):
-    df = pd.read_csv(gff, 
+    df = pd.read_csv(
+        gff,
         header=None, index_col=None, comment="#", sep="\t")
-    df.columns = ["file", "path", "feature", "start", "end", 
-                  "?", "strand", "frame", "explanation"]
+    df.columns = [
+        "file", "path", "feature", "start", "end",
+        "?", "strand", "frame", "explanation"]
     df.index = df['explanation'].map(lambda x: x.split(";")[0])
     return df.sort_values(by="start")
 
+
 def cut_digit(string, digit):
     return ".".join(string.split(".")[:digit])
+
 
 def to_EC(x, gene_ec, digit):
     if x in gene_ec.index:
@@ -97,8 +102,9 @@ def determine_cluster(array, size):
 
 def density_score(ex):
     base = ex.max(axis=0).sum()
-    #return base * (ex.any(axis=0).astype(int).sum() - 0.999)
+    # return base * (ex.any(axis=0).astype(int).sum() - 0.999)
     return base
+
 
 def cluster_indices(score, size):
     add = score.iloc[:size, :]
@@ -116,6 +122,7 @@ def window_score(score):
     genecount = score.astype(bool).astype(int).values.sum()
     return genecount * genecount / float(score.shape[0])
 
+
 def fit_window(score, center, ex):
     ex = score.iloc[center - ex:center + ex, :]
     out = []
@@ -129,6 +136,7 @@ def fit_window(score, center, ex):
 def to_ec(score, gene):
     index = score.loc[gene].astype(bool)
     return "|".join(score.columns[index].tolist())
+
 
 def output_metadigzyme_score(outs, outstrs):
     S = 1
@@ -151,13 +159,14 @@ def recursive_search(score, outs, args, outstrs):
         drop_index = result[0].columns[result[0].any(axis=0).values]
         _score = score.drop(drop_index, axis=1)
         _outs = copy.deepcopy(outs)
-        if result[1] > 1: 
+        if result[1] > 1:
             _outs.append(result)
         if _score.sum().sum() > 1 and _score.shape[1] > 1:
             recursive_search(_score, _outs, args, outstrs)
         else:
             if len(_outs) > 0:
                 output_metadigzyme_score(_outs, outstrs)
+
 
 def main(args):
     gff = parse_gff(args["gff"])
@@ -170,6 +179,7 @@ def main(args):
     outfile = open(args["output"], "w")
     outfile.write("".join(sorted(set(outstrs), reverse=True)))
     outfile.close()
+
 
 if __name__ == '__main__':
     main(parser_setting())

@@ -8,9 +8,9 @@ metadigzyme working directory
 ```bash
 docker run metadigzyme \
 	python /opt/metadigzyme/script/python/search_cluster.py \
-		-g /opt/metadigzyme/test_data/input/eco.gff \
-		-me /opt/metadigzyme/validation/input/module_query/M00001 \
-		-ge /opt/metadigzyme/test_data/input/eco.list \
+		-g /opt/metadigzyme/validation/input/gff/eco.gff \
+		-me /opt/metadigzyme/validation/input/module_enzyme/M00001 \
+		-ge /opt/metadigzyme/test_data/input/gene_enzyme/eco.list \
 		-o "/dev/stdout"
 ```
 
