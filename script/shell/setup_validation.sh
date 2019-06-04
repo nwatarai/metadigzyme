@@ -28,20 +28,16 @@ if [ ! -e "${INPUT_DIR}/module_ec.list" ]; then
 	rm "${INPUT_DIR}/module_ec.list.pathway"
 fi
 
-if [ ! -e "${INPUT_DIR}/module_ec.list.pathway" ]; then
-	grep \
-		-f "${INPUT_DIR}/module_of_pathway.list"\
-		"${INPUT_DIR}/module_ec.list" \
-		>  "${INPUT_DIR}/module_ec.list.pathway"
-	rm -r "${MODULE_ENZYME_DIR}"
-fi
+grep \
+	-f "${VALIDATION_DIR}/module_of_pathway.list"\
+	"${INPUT_DIR}/module_ec.list" \
+	>  "${INPUT_DIR}/module_ec.list.pathway"
 
-if [ ! -e "${MODULE_ENZYME_DIR}" ]; then
-	mkdir -p "${MODULE_ENZYME_DIR}"
-	python "${DIR}/script/python/make_module_ec_lists.py" \
-		"${INPUT_DIR}/module_ec.list.pathway" \
-		-o "${MODULE_ENZYME_DIR}"
-fi
+rm -r "${MODULE_ENZYME_DIR}"
+mkdir -p "${MODULE_ENZYME_DIR}"
+python "${DIR}/script/python/make_module_ec_lists.py" \
+	"${INPUT_DIR}/module_ec.list.pathway" \
+	-o "${MODULE_ENZYME_DIR}"
 
 
 ################################################
@@ -78,7 +74,7 @@ if [ ! -e "${GFF_DIR}" ]; then
 	for i in ${LIST[@]}
 	do
 		NAME=`echo ${i} | cut -d '.' -f 1`
-		python script/python/kff2gff.py \
+		python ${DIR}/script/python/kff2gff.py \
 		    "${KFF_DIR}/${i}" \
 		    -o "${GFF_DIR}/${NAME}.gff"
 	done
@@ -96,6 +92,6 @@ do
 	wget "http://rest.kegg.jp/link/${i}/module" \
 	-O "/dev/stdout" \
 	| cut -f 2 -d '_' \
-	| grep -f "${INPUT_DIR}/module_of_pathway.list"
+	| grep -f "${VALIDATION_DIR}/module_of_pathway.list"
 done > "${ANSWER_DIR}/module_gene.list"
 fi

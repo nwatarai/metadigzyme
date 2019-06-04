@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DIR=$(cd $(dirname $0)/../..; pwd)
+DIR=~/metadigzyme/
 VALIDATION_DIR="${DIR}/validation"
 INPUT_DIR="${VALIDATION_DIR}/input"
 OUTPUT_DIR="${VALIDATION_DIR}/output"
@@ -25,5 +25,6 @@ do
 		-ge "${GENE_ENZYME_DIR}/${o}.list" \
 		-me "${MODULE_ENZYME_DIR}/${m}" \
 		-o "${OUTPUT_DIR}/${m}/${o}" \
-		-w `grep -c ec ${MODULE_ENZYME_DIR}/${m}`
+		-w 20
 done
+
