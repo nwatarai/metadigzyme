@@ -36,9 +36,15 @@ def parser_setting():
     parser.add_argument(
         '-w', '--window',
         action='store', type=int,
-        default=12,
+        default=None,
         help='Window size for searching \
-              the cluster center.')
+              the cluster center. \
+              (default: #genes * 2)')
+    parser.add_argument(
+        '-pt', '--peak_thresholds',
+        action='store', type=int,
+        default=15,
+        help='Maximum number of peaks for search')
     parser.add_argument(
         '-o', '--output',
         required=True,
@@ -152,10 +158,23 @@ def output_metadigzyme_score(outs, outstrs):
 
 
 def recursive_search(score, outs, args, outstrs, partial_results):
-    indices = cluster_indices(score, args["window"])
+    if args["window"]:
+        ws = args["window"]       
+    else:
+        ws = score.shape[1] * 2
+    key = "|".join(score.columns.tolist())
+    if key not in partial_results:
+        indices = cluster_indices(score, ws)
+        partial_results[key] = indices
+    else:
+        indices = partial_results[key]
+
+    if len(indices) >= args["peak_thresholds"]:
+        output_metadigzyme_score(copy.deepcopy(outs), outstrs)
+        return 0
     print(indices)
 
-    ex = int(args["window"] / 2)
+    ex = int(ws / 2)
     for i in indices:
         key = "{}/{}".format("|".join(score.columns.tolist()), i)
         if key not in partial_results:
@@ -166,13 +185,27 @@ def recursive_search(score, outs, args, outstrs, partial_results):
         drop_index = result[0].columns[result[0].any(axis=0).values]
         _score = score.drop(drop_index, axis=1)
         _outs = copy.deepcopy(outs)
-        if result[1] > 1:
-            _outs.append([key, result])
+        _outs.append([key, result])
         if _score.sum().sum() > 1 and _score.shape[1] > 1:
             recursive_search(_score, _outs, args, outstrs, partial_results)
         else:
             if len(_outs) > 0:
                 output_metadigzyme_score(_outs, outstrs)
+
+def uniq_results(outstrs):
+    outs = []
+    if len(outstrs) == 1:
+        return outstrs
+    s = sorted(set(outstrs), reverse=True, key=lambda x: len(x))
+    for i in range(len(s))[1:]:
+        flag = True
+        _si = "\n".join(s[i].split("\n")[1:]).rstrip()
+        for j in range(i):
+            if _si in s[j]:
+                flag = False
+        if flag:
+            outs.append(s[i])
+    return sorted(outs, reverse=True)
 
 def main(args):
     gff = parse_gff(args["gff"])
@@ -183,7 +216,7 @@ def main(args):
     outstrs = []
     recursive_search(score, [], args, outstrs, {})
     outfile = open(args["output"], "w")
-    outfile.write("".join(sorted(set(outstrs), reverse=True)))
+    outfile.write("".join(uniq_results(outstrs)))
     outfile.close()
 
 
