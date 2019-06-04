@@ -141,32 +141,38 @@ def to_ec(score, gene):
 def output_metadigzyme_score(outs, outstrs):
     S = 1
     O = ""
-    for i, o in enumerate(outs):
+    for i, _o in enumerate(outs):
+        name = "{}.{}".format(_o[0].split("/")[-1], _o[0].count("|") + 1)
+        o = _o[1]
         S += o[1] - 1
         for gene in o[0].index:
             O += "cluster{}\t{}\t{}\t{}\n".format(
-                i, gene, to_ec(o[0], gene), o[1])
-    outstrs.append("#score={}\n{}\n".format(S, O))
+                name, gene, to_ec(o[0], gene), round(o[1], 2))
+    outstrs.append("#score={}\n{}\n".format(round(S, 2), O))
 
 
-def recursive_search(score, outs, args, outstrs):
+def recursive_search(score, outs, args, outstrs, partial_results):
     indices = cluster_indices(score, args["window"])
     print(indices)
 
     ex = int(args["window"] / 2)
     for i in indices:
-        result = fit_window(score, i, ex)
+        key = "{}/{}".format("|".join(score.columns.tolist()), i)
+        if key not in partial_results:
+            result = fit_window(score, i, ex)
+            partial_results[key] = result
+        else:
+            result = partial_results[key]
         drop_index = result[0].columns[result[0].any(axis=0).values]
         _score = score.drop(drop_index, axis=1)
         _outs = copy.deepcopy(outs)
         if result[1] > 1:
-            _outs.append(result)
+            _outs.append([key, result])
         if _score.sum().sum() > 1 and _score.shape[1] > 1:
-            recursive_search(_score, _outs, args, outstrs)
+            recursive_search(_score, _outs, args, outstrs, partial_results)
         else:
             if len(_outs) > 0:
                 output_metadigzyme_score(_outs, outstrs)
-
 
 def main(args):
     gff = parse_gff(args["gff"])
@@ -175,7 +181,7 @@ def main(args):
     module_ec = open(args["module_ec"]).read().rstrip().split("\n")
     score = make_score_table(gff, gene_ec, module_ec, args["digit"])
     outstrs = []
-    recursive_search(score, [], args, outstrs)
+    recursive_search(score, [], args, outstrs, {})
     outfile = open(args["output"], "w")
     outfile.write("".join(sorted(set(outstrs), reverse=True)))
     outfile.close()
