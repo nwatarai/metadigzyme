@@ -91,7 +91,7 @@ for i in ${PROKARYOTA[@]}
 do
 	wget "http://rest.kegg.jp/link/${i}/module" \
 	-O "/dev/stdout" \
-	| cut -f 2 -d '_' \
+	| cut -f 2- -d '_' \
 	| grep -f "${VALIDATION_DIR}/module_of_pathway.list"
 done > "${ANSWER_DIR}/module_gene.list"
 fi

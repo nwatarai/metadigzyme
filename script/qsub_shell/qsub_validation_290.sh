@@ -24,7 +24,9 @@ do
 		-g "${GFF_DIR}/${o}.gff" \
 		-ge "${GENE_ENZYME_DIR}/${o}.list" \
 		-me "${MODULE_ENZYME_DIR}/${m}" \
-		-o "${OUTPUT_DIR}/${m}/${o}" \
-		-w 20
+		-o "${OUTPUT_DIR}/${m}/${o}" 
+	python ${DIR}/script/python/validate_result.py \
+		-mg ${ANSWER_DIR}/module_gene.list \
+		-d ${OUTPUT_DIR}/${m} -o ${VALIDATION_DIR}/${m}.accuracy
 done
 

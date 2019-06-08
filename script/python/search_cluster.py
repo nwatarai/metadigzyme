@@ -61,8 +61,19 @@ def parse_gff(gff):
     df.columns = [
         "file", "path", "feature", "start", "end",
         "?", "strand", "frame", "explanation"]
-    df.index = df['explanation'].map(lambda x: x.split(";")[0])
-    return df.sort_values(by="start")
+    df["gene"] = df['explanation'].map(lambda x: x.split(";")[0])
+    df.index = df["gene"]
+    df = df.sort_values(by="start")
+    plus_df = df.copy()
+    minus_df = df.copy()
+    for i in df.index:
+        if df.loc[i, "strand"] == "+":
+            minus_df.loc[i, "gene"] = "comp_" + minus_df.loc[i, "gene"]
+        else:
+            plus_df.loc[i, "gene"] = "comp_" + plus_df.loc[i, "gene"]
+    plus_df = plus_df.set_index("gene")
+    minus_df = minus_df.set_index("gene")
+    return pd.concat([plus_df, minus_df], axis=0)
 
 
 def cut_digit(string, digit):
@@ -88,7 +99,8 @@ def make_score_table(gff, gene_ec, module_ec, digit):
         if gff[ec].sum() == 0:
             gff.drop(ec, axis=1)
         else:
-            gff[ec] = gff[ec] / gff[ec].sum()
+            #gff[ec] = gff[ec] / gff[ec].sum()
+            pass
     return gff.iloc[:, 10:].astype(float)
 
 
@@ -107,15 +119,13 @@ def determine_cluster(array, size):
 
 
 def density_score(ex):
-    base = ex.max(axis=0).sum()
+    base = ex.sum().sum()
+    #base = ex.max(axis=0).sum()
     # return base * (ex.any(axis=0).astype(int).sum() - 0.999)
     return base
 
 
 def cluster_indices(score, size):
-    add = score.iloc[:size, :]
-    add.index = add.index.map(lambda x: x + "_a")
-    score = pd.concat([score, add], axis=0)
     density = []
     for i in range(score.shape[0] - size):
         density.append(density_score(score.iloc[i:i + size, :]))
