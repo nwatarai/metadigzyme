@@ -68,8 +68,9 @@ fi
 # CONVERT KFF TO GFF #
 ######################
 
-if [ ! -e "${GFF_DIR}" ]; then
-	mkdir -p "${GFF_DIR}"
+mkdir -p "${GFF_DIR}"
+
+if [ ! -e "${GFF_DIR}/zpr.gff" ]; then
 	LIST=(`ls ${KFF_DIR} | grep -v '.gz'`)
 	for i in ${LIST[@]}
 	do

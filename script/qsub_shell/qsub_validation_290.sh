@@ -16,6 +16,7 @@ MODULES=(`ls ${MODULE_ENZYME_DIR}`)
 index=`expr $SGE_TASK_ID - 1`
 m=${MODULES[$index]}
 
+<<COMMENT
 echo "${m}"
 mkdir -p ${OUTPUT_DIR}/${m}
 for o in ${ORGANISMS[@]}
@@ -25,8 +26,11 @@ do
 		-ge "${GENE_ENZYME_DIR}/${o}.list" \
 		-me "${MODULE_ENZYME_DIR}/${m}" \
 		-o "${OUTPUT_DIR}/${m}/${o}" 
-	python ${DIR}/script/python/validate_result.py \
-		-mg ${ANSWER_DIR}/module_gene.list \
-		-d ${OUTPUT_DIR}/${m} -o ${VALIDATION_DIR}/${m}.accuracy
 done
+
+COMMENT
+
+python ${DIR}/script/python/validate_result.py \
+                -mg ${ANSWER_DIR}/module_gene.list \
+                -d ${OUTPUT_DIR}/${m} -o ${VALIDATION_DIR}/${m}.accuracy
 

@@ -43,7 +43,7 @@ def parser_setting():
     parser.add_argument(
         '-pt', '--peak_thresholds',
         action='store', type=int,
-        default=15,
+        default=20,
         help='Maximum number of peaks for search')
     parser.add_argument(
         '-o', '--output',
@@ -120,6 +120,8 @@ def determine_cluster(array, size):
 
 def density_score(ex):
     base = ex.sum().sum()
+    if base == 1:
+        base = 0
     #base = ex.max(axis=0).sum()
     # return base * (ex.any(axis=0).astype(int).sum() - 0.999)
     return base
